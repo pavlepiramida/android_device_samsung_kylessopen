@@ -346,13 +346,13 @@ index 17ba0a1..eaf8309 100644
 +
  enum {
 -    SHUT_RD = 0,        /* no more receptions */
-+    SHUT_RD = 0,        
++    SHUT_RD = 0,
  #define SHUT_RD         SHUT_RD
 -    SHUT_WR,            /* no more transmissions */
-+    SHUT_WR,            
++    SHUT_WR,
  #define SHUT_WR         SHUT_WR
 -    SHUT_RDWR           /* no more receptions or transmissions */
-+    SHUT_RDWR           
++    SHUT_RDWR
  #define SHUT_RDWR       SHUT_RDWR
  };
  
