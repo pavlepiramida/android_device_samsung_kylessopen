@@ -98,8 +98,8 @@ PRODUCT_COPY_FILES += \
     $(call find-copy-subdir-files,*,device/samsung/kylessopen/prebuilt/system,system)
     
 # Classic Webview
-PRODUCT_PROPERTY_OVERRIDES += \
-    persist.webview.provider=classic
+#PRODUCT_PROPERTY_OVERRIDES += \
+#    persist.webview.provider=classic
     
 #Optimization for low-memory devices
 PRODUCT_PROPERTY_OVERRIDES += \
