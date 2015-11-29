@@ -36,8 +36,8 @@ on fs
 
     setprop ro.crypto.fuse_sdcard true
 
-    mount ext4 /dev/block/mmcblk0p19 /efs nosuid nodev barrier=1
-    mount ext4 /dev/block/mmcblk0p11 /persist nosuid nodev barrier=1    
+    # zRAM
+    swapon_all fstab.qcom
 
 on boot
     # Bluetooth
