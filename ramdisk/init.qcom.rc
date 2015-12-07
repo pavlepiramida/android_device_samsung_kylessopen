@@ -29,6 +29,7 @@ on init
 
     mkdir /persist
     mkdir /efs
+    mkdir /hidden
 
 on fs
     # Mount partitions
