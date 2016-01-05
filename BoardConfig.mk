@@ -17,7 +17,6 @@
 
 # Platform
 BOARD_VENDOR := samsung
-
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
 TARGET_ARCH := arm
@@ -28,14 +27,11 @@ ARCH_ARM_HAVE_NEON := true
 ARCH_ARM_HAVE_TLS_REGISTER := true
 TARGET_GLOBAL_CFLAGS += -mtune=cortex-a5 -mfpu=neon-vfpv4 -mfloat-abi=softfp
 TARGET_GLOBAL_CPPFLAGS += -mtune=cortex-a5 -mfpu=neon-vfpv4 -mfloat-abi=softfp
-
 TARGET_BOARD_PLATFORM := msm7x27a
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno200
 BOARD_USES_ADRENO_200 := true
-
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_RADIOIMAGE := true
-#TARGET_NO_RECOVERY   := true
 
 # Kernel
 TARGET_KERNEL_CONFIG := cyanogenmod_kyle02_defconfig
@@ -44,7 +40,6 @@ TARGET_BOOTLOADER_BOARD_NAME := kylessopen
 BOARD_KERNEL_CMDLINE := androidboot.hardware=kylessopen
 BOARD_KERNEL_BASE := 0x00200000
 BOARD_KERNEL_PAGESIZE := 4096
-
 TARGET_SPECIFIC_HEADER_PATH := device/samsung/kylessopen/include
 
 # Filesystem
@@ -53,7 +48,6 @@ BOARD_RECOVERYIMAGE_PARTITION_SIZE := 12582912
 BOARD_SYSTEMIMAGE_PARTITION_SIZE := 1258291200
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 1946804224
 BOARD_FLASH_BLOCK_SIZE := 131072
-
 BOARD_VOLD_EMMC_SHARES_DEV_MAJOR := true
 BOARD_VOLD_MAX_PARTITIONS := 24
 
@@ -127,11 +121,6 @@ BOARD_USES_QCOM_GPS := true
 BOARD_VENDOR_QCOM_GPS_LOC_API_HARDWARE := msm7x27a
 BOARD_VENDOR_QCOM_GPS_LOC_API_AMSS_VERSION := 50000
 
-## Webkit
-#ENABLE_WEBGL := true
-#TARGET_WEBKIT_USE_MORE_MEMORY := true
-#TARGET_FORCE_CPU_UPLOAD := true
-
 # Bootanimation
 TARGET_NO_INITLOGO := true
 TARGET_BOOTANIMATION_USE_RGB565 := true
@@ -151,6 +140,7 @@ BOARD_CUSTOM_RECOVERY_KEYMAPPING := ../../device/samsung/kylessopen/recovery/rec
 TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/msm_hsusb/gadget/lun%d/file
 BOARD_UMS_LUNFILE := "/sys/devices/platform/msm_hsusb/gadget/lun%d/file"
 TARGET_USERIMAGES_USE_EXT4 := true
+TARGET_USERIMAGES_USE_F2FS := true
 BOARD_HAS_SDCARD_INTERNAL := true
 BOARD_HAS_DOWNLOAD_MODE := true
 BOARD_USES_MMCUTILS := true
