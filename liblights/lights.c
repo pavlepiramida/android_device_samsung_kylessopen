@@ -16,7 +16,7 @@
 
 #define LOG_TAG "lights.msm7x27a"
 
-#define LOG_NDEBUG 0
+#define LOG_NDEBUG 1
 
 #include <cutils/log.h>
 #include <stdint.h>
@@ -47,6 +47,7 @@ static int write_int(char const *path, int value)
 
     already_warned = 0;
 
+    ALOGV("write_int: path %s, value %d", path, value);
     fd = open(path, O_RDWR);
 
     if (fd >= 0) {
@@ -107,10 +108,10 @@ static int set_light_notifications(struct light_device_t* dev, struct light_stat
      int on = is_lit(state);
      pthread_mutex_lock (&g_lock);
 
-     /*if(on)
+     if(on)
          write_int(NOTIFICATION_FILE, 1);
      else
-         write_int(NOTIFICATION_FILE, 0);*/
+         write_int(NOTIFICATION_FILE, 0);
 
      pthread_mutex_unlock (&g_lock);
 
