@@ -32,7 +32,8 @@ static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 
 char const *const LCD_FILE = "/sys/class/leds/lcd-backlight/brightness";
 char const *const BUTTON_FILE = "/sys/class/leds/button-backlight/brightness";
-char const *const NOTIFICATION_FILE = "/sys/class/misc/backlightnotification/notification_led";
+char const *const NOTIFICATION_FILE = "/sys/devices/virtual/misc/backlightnotification/notification_led";
+char const *const NOTIFICATION_ENABLE_FILE = "/sys/devices/virtual/misc/backlightnotification/enabled";
 
 void init_globals(void)
 {
@@ -109,9 +110,15 @@ static int set_light_notifications(struct light_device_t* dev, struct light_stat
      pthread_mutex_lock (&g_lock);
 
      if(on)
+     {
          write_int(NOTIFICATION_FILE, 1);
+         write_int(NOTIFICATION_ENABLE_FILE, 1);
+     }
      else
+     {
          write_int(NOTIFICATION_FILE, 0);
+         write_int(NOTIFICATION_ENABLE_FILE, 0);
+     }
 
      pthread_mutex_unlock (&g_lock);
 
