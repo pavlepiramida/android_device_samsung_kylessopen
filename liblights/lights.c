@@ -111,8 +111,8 @@ static int set_light_notifications(struct light_device_t* dev, struct light_stat
 
      if(on)
      {
-         write_int(NOTIFICATION_FILE, 1);
          write_int(NOTIFICATION_ENABLE_FILE, 1);
+         write_int(NOTIFICATION_FILE, 1);
      }
      else
      {
