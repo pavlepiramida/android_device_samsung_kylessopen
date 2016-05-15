@@ -139,16 +139,6 @@ on boot
 
     setprop wifi.interface wlan0
 
-    #RIL permissions
-    chmod 660 /dev/oncrpc/30000000:f4fc28c3
-    chmod 660 /dev/oncrpc/3000000e:00090000
-    chmod 660 /dev/oncrpc/30000003:86572c7c
-    chmod 660 /dev/oncrpc/30000012:00040000
-    chown radio:radio /dev/oncrpc/30000000:f4fc28c3
-    chown radio:radio /dev/oncrpc/3000000e:00090000
-    chown radio:radio /dev/oncrpc/30000003:86572c7c
-    chown radio:radio /dev/oncrpc/30000012:00040000
-
     # Power management
     write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ondemand
     write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 245760
