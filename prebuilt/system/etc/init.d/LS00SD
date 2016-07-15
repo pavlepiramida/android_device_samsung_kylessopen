@@ -1,0 +1,63 @@
+#!/system/bin/sh
+# Copyright (C) 2016 Paget96
+#=======================================================================#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
+#=======================================================================#
+
+mount -o remount,rw / 2>/dev/null
+mount -o remount,rw / / 2>/dev/null
+mount -o remount,rw rootfs 2>/dev/null
+mount -o remount,rw /system 2>/dev/null
+mount -o remount,rw /system /system 2>/dev/null
+busybox mount -o remount,rw / 2>/dev/null
+busybox mount -o remount,rw / / 2>/dev/null
+busybox mount -o remount,rw rootfs 2>/dev/null
+busybox mount -o remount,rw /system 2>/dev/null
+busybox mount -o remount,rw /system /system 2>/dev/null
+
+LS=/system/L_SPEED/LOGS/LS00SD.log
+
+if [ -f $LS ]; then
+busybox rm $LS;
+fi;
+
+busybox echo "# L Speed log" | busybox tee -a $LS
+busybox echo "" | busybox tee -a $LS
+busybox echo "Activating SD speed tweak..." | busybox tee -a $LS
+
+L=2048
+
+MMC=/sys/block/mmc*
+for S in $MMC;
+do
+	if [ -f $S/queue/read_ahead_kb ];
+	then
+		busybox echo "$L" > $S/queue/read_ahead_kb;
+	fi;
+	if [ -f $S/bdi/read_ahead_kb ];
+        then
+              busybox echo "$L" > $S/bdi/read_ahead_kb;
+        fi;
+done
+
+busybox echo "" | busybox tee -a $LS
+busybox echo "SD speed tweak is activated" | busybox tee -a $LS
+
+mount -o remount,ro / 2>/dev/null
+mount -o remount,ro / / 2>/dev/null
+mount -o remount,ro rootfs 2>/dev/null
+mount -o remount,ro /system 2>/dev/null
+mount -o remount,ro /system /system 2>/dev/null
+busybox mount -o remount,ro / 2>/dev/null
+busybox mount -o remount,ro / / 2>/dev/null
+busybox mount -o remount,ro rootfs 2>/dev/null
+busybox mount -o remount,ro /system 2>/dev/null
+busybox mount -o remount,ro /system /system 2>/dev/null
+
