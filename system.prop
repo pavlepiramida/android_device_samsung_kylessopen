@@ -10,7 +10,7 @@ persist.call_recording.enabled=1
 
 # Dalvik
 dalvik.vm.checkjni=0
-dalvik.vm.dexopt-data-only=0
+dalvik.vm.dexopt-data-only=1
 dalvik.vm.dexopt-flags=v=a,o=v,m=y,u=y
 dalvik.vm.execution-mode=int:jit
 
@@ -34,16 +34,7 @@ ro.vendor.extension_library=/system/lib/libqc-opt.so
 # Telephony
 rild.libpath=/system/lib/libril-qc-1.so
 rild.libargs=-d /dev/smd0 
-#	ro.telephony.ril_class=SamsungRIL
-#	persist.rild.nitz_plmn=
-#	persist.rild.nitz_long_ons_0=
-#	persist.rild.nitz_long_ons_1=
-#	persist.rild.nitz_long_ons_2=
-#	persist.rild.nitz_long_ons_3=
-#	persist.rild.nitz_short_ons_0=
-#	persist.rild.nitz_short_ons_1=
-#	persist.rild.nitz_short_ons_2=
-#	persist.rild.nitz_short_ons_3=
+
 ril.subscription.types=NV,RUIM
 ro.telephony.call_ring.multiple=false 
 ro.telephony.call_ring.delay=1000  
@@ -52,10 +43,6 @@ ro.ril.hsxpa=1
 telephony.lteOnGsmDevice=false
 telephony.lteOnCdmaDevice=false
 
-# Multisim
-#	persist.radio.multisim.config=dsds
-#	persist.dsds.enabled=true
-#	ro.multi.rild=false
 
 # USB
 persist.sys.usb.config=mass_storage,adb
