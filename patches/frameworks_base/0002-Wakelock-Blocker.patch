@@ -1,0 +1,261 @@
+From cbf584c2d0a689359fda5bf2642ca3033d2beb81 Mon Sep 17 00:00:00 2001
+From: remittor <remittor@gmail.com>
+Date: Fri, 10 Jun 2016 14:39:38 +0300
+Subject: [PATCH] Wakelock Blocker
+
+src: http://review.cyanogenmod.org/#/c/109898/
+---
+ core/java/android/os/IPowerManager.aidl            |  3 +
+ core/java/android/os/PowerManager.java             | 11 +++
+ core/java/android/provider/Settings.java           | 12 +++
+ .../android/server/power/PowerManagerService.java  | 92 +++++++++++++++++++++-
+ 4 files changed, 114 insertions(+), 4 deletions(-)
+
+diff --git a/core/java/android/os/IPowerManager.aidl b/core/java/android/os/IPowerManager.aidl
+index 2274915..7c4ca2a 100644
+--- a/core/java/android/os/IPowerManager.aidl
++++ b/core/java/android/os/IPowerManager.aidl
+@@ -63,4 +63,7 @@ interface IPowerManager
+ 	void setPowerProfile(String profile);
+ 	String getPowerProfile();
+ 	void wakeUpWithProximityCheck(long time);
++
++    // blocked wakelock support
++    String getSeenWakeLocks();
+ }
+diff --git a/core/java/android/os/PowerManager.java b/core/java/android/os/PowerManager.java
+index b394c71..c69fcee 100644
+--- a/core/java/android/os/PowerManager.java
++++ b/core/java/android/os/PowerManager.java
+@@ -750,6 +750,17 @@ public final class PowerManager {
+         return ret;
+     }
+ 
++    public String getSeenWakeLocks() {
++        try {
++            if (mService != null) {
++                return mService.getSeenWakeLocks();
++            }
++        } catch (RemoteException e) {
++            //
++        }
++        return null;
++    }
++
+     /**
+      * A wake lock is a mechanism to indicate that your application needs
+      * to have the device stay on.
+diff --git a/core/java/android/provider/Settings.java b/core/java/android/provider/Settings.java
+index 2d3e88e..281fb3c 100755
+--- a/core/java/android/provider/Settings.java
++++ b/core/java/android/provider/Settings.java
+@@ -2841,6 +2841,18 @@ public final class Settings {
+         public static final String POINTER_SPEED = "pointer_speed";
+ 
+         /**
++         * Enable blocking wakelock
++         * @hide
++         */
++        public static final String WAKELOCK_BLOCKING_ENABLED = "wakelock_blocking_enabled";
++
++        /**
++         * List of wakelock blocks selected
++         * @hide
++         */
++        public static final String WAKELOCK_BLOCKING_LIST = "wakelock_blocking_list";
++
++        /**
+          * I am the lolrus.
+          * <p>
+          * Nonzero values indicate that the user has a bukkit.
+diff --git a/services/java/com/android/server/power/PowerManagerService.java b/services/java/com/android/server/power/PowerManagerService.java
+index 56a4096..3ea30c2 100644
+--- a/services/java/com/android/server/power/PowerManagerService.java
++++ b/services/java/com/android/server/power/PowerManagerService.java
+@@ -72,6 +72,9 @@ import java.io.FileDescriptor;
+ import java.io.PrintWriter;
+ import java.util.ArrayList;
+ import java.util.List;
++import java.util.Set;
++import java.util.HashSet;
++import java.util.Iterator;
+ 
+ import libcore.util.Objects;
+ 
+@@ -227,6 +230,9 @@ public final class PowerManagerService extends IPowerManager.Stub
+ 
+     // Table of all wake locks acquired by applications.
+     private final ArrayList<WakeLock> mWakeLocks = new ArrayList<WakeLock>();
++    private Set<String> mSeenWakeLocks = new HashSet<String>();
++    private Set<String> mBlockedWakeLocks = new HashSet<String>();
++    private int mWakeLockBlockingEnabled;
+ 
+     // A bitfield that summarizes the state of all active wakelocks.
+     private int mWakeLockSummary;
+@@ -586,6 +592,12 @@ public final class PowerManagerService extends IPowerManager.Stub
+             resolver.registerContentObserver(Settings.System.getUriFor(
+                     Settings.System.PROXIMITY_ON_WAKE),
+                     false, mSettingsObserver, UserHandle.USER_ALL);
++            resolver.registerContentObserver(Settings.System.getUriFor(
++                    Settings.System.WAKELOCK_BLOCKING_ENABLED),
++                    false, mSettingsObserver, UserHandle.USER_ALL);
++            resolver.registerContentObserver(Settings.System.getUriFor(
++                    Settings.System.WAKELOCK_BLOCKING_LIST),
++                    false, mSettingsObserver, UserHandle.USER_ALL);
+ 
+             // Go.
+             readConfigurationLocked();
+@@ -647,6 +659,17 @@ public final class PowerManagerService extends IPowerManager.Stub
+         mProximityWakeEnabled = Settings.System.getInt(resolver,
+                 Settings.System.PROXIMITY_ON_WAKE, 0) == 1;
+ 
++        mWakeLockBlockingEnabled = Settings.System.getIntForUser(resolver,
++                Settings.System.WAKELOCK_BLOCKING_ENABLED, 0,
++                UserHandle.USER_CURRENT);
++
++        String blockedWakelockList = Settings.System.getStringForUser(resolver,
++                Settings.System.WAKELOCK_BLOCKING_LIST,
++                UserHandle.USER_CURRENT);
++        setBlockedWakeLocks(blockedWakelockList);
++
++        Slog.d(TAG, "mWakeLockBlockingEnabled=" + mWakeLockBlockingEnabled + " blockedWakelockList=" + blockedWakelockList);
++
+         final int oldScreenBrightnessSetting = mScreenBrightnessSetting;
+         mScreenBrightnessSetting = Settings.System.getIntForUser(resolver,
+                 Settings.System.SCREEN_BRIGHTNESS, mScreenBrightnessSettingDefault,
+@@ -764,10 +787,23 @@ public final class PowerManagerService extends IPowerManager.Stub
+                         + ", tag=\"" + tag + "\", ws=" + ws + ", uid=" + uid + ", pid=" + pid);
+             }
+ 
++            boolean blockWakelock = false;
++
++            if (!mSeenWakeLocks.contains(tag)) {
++                mSeenWakeLocks.add(tag);
++            }
++
++            if (mWakeLockBlockingEnabled == 1) {
++                if (mBlockedWakeLocks.contains(tag)) {
++                    blockWakelock = true;
++                }
++            }
++
+             WakeLock wakeLock;
+             int index = findWakeLockIndexLocked(lock);
+             if (index >= 0) {
+                 wakeLock = mWakeLocks.get(index);
++                wakeLock.setIsBlocked(blockWakelock);
+                 if (!wakeLock.hasSameProperties(flags, tag, ws, uid, pid)) {
+                     // Update existing wake lock.  This shouldn't happen but is harmless.
+                     notifyWakeLockReleasedLocked(wakeLock);
+@@ -781,6 +817,7 @@ public final class PowerManagerService extends IPowerManager.Stub
+                 } catch (RemoteException ex) {
+                     throw new IllegalArgumentException("Wake lock is already dead.");
+                 }
++                wakeLock.setIsBlocked(blockWakelock);
+                 notifyWakeLockAcquiredLocked(wakeLock);
+                 mWakeLocks.add(wakeLock);
+             }
+@@ -1014,16 +1051,14 @@ public final class PowerManagerService extends IPowerManager.Stub
+     }
+ 
+     private void notifyWakeLockAcquiredLocked(WakeLock wakeLock) {
+-        if (mSystemReady) {
+-            wakeLock.mNotifiedAcquired = true;
++        if (mSystemReady && !wakeLock.isBlocked()) {
+             mNotifier.onWakeLockAcquired(wakeLock.mFlags, wakeLock.mTag, wakeLock.mPackageName,
+                     wakeLock.mOwnerUid, wakeLock.mOwnerPid, wakeLock.mWorkSource);
+         }
+     }
+ 
+     private void notifyWakeLockReleasedLocked(WakeLock wakeLock) {
+-        if (mSystemReady && wakeLock.mNotifiedAcquired) {
+-            wakeLock.mNotifiedAcquired = false;
++        if (mSystemReady && !wakeLock.isBlocked()) {
+             mNotifier.onWakeLockReleased(wakeLock.mFlags, wakeLock.mTag, wakeLock.mPackageName,
+                     wakeLock.mOwnerUid, wakeLock.mOwnerPid, wakeLock.mWorkSource);
+         }
+@@ -1660,6 +1695,17 @@ public final class PowerManagerService extends IPowerManager.Stub
+                 final WakeLock wakeLock = mWakeLocks.get(i);
+                 switch (wakeLock.mFlags & PowerManager.WAKE_LOCK_LEVEL_MASK) {
+                     case PowerManager.PARTIAL_WAKE_LOCK:
++                        if (wakeLock.isBlocked()) {
++                            if (DEBUG_SPEW) {
++                                Slog.d(TAG, "updateWakeLockSummaryLocked: PARTIAL_WAKE_LOCK"
++                                          + " blocked tag=" + wakeLock.mTag);
++                            }
++                            continue;
++                        }
++                        if (DEBUG_SPEW) {
++                            Slog.d(TAG, "updateWakeLockSummaryLocked: PARTIAL_WAKE_LOCK tag="
++                                    + wakeLock.mTag);
++                        }
+                         mWakeLockSummary |= WAKE_LOCK_CPU;
+                         break;
+                     case PowerManager.FULL_WAKE_LOCK:
+@@ -1803,6 +1849,9 @@ public final class PowerManagerService extends IPowerManager.Stub
+ 
+     private int getScreenOffTimeoutLocked() {
+         int timeout = mScreenOffTimeoutSetting;
++        if (timeout == mMaximumScreenOffTimeoutFromDeviceAdmin) {
++            return Math.max(timeout, MINIMUM_SCREEN_OFF_TIMEOUT);
++        }
+         if (isMaximumScreenOffTimeoutFromDeviceAdminEnforcedLocked()) {
+             timeout = Math.min(timeout, mMaximumScreenOffTimeoutFromDeviceAdmin);
+         }
+@@ -2966,6 +3015,7 @@ public final class PowerManagerService extends IPowerManager.Stub
+         public final int mOwnerUid;
+         public final int mOwnerPid;
+         public boolean mNotifiedAcquired;
++        private boolean mIsBlocked;
+ 
+         public WakeLock(IBinder lock, int flags, String tag, String packageName,
+                 WorkSource workSource, int ownerUid, int ownerPid) {
+@@ -3053,6 +3103,14 @@ public final class PowerManagerService extends IPowerManager.Stub
+             }
+             return result;
+         }
++
++        public void setIsBlocked(boolean value) {
++            mIsBlocked = value;
++        }
++
++        public boolean isBlocked() {
++            return mIsBlocked;
++        }
+     }
+ 
+     private final class SuspendBlockerImpl implements SuspendBlocker {
+@@ -3190,4 +3248,30 @@ public final class PowerManagerService extends IPowerManager.Stub
+             }
+         }
+     }
++
++    @Override
++    public String getSeenWakeLocks() {
++        StringBuffer buffer = new StringBuffer();
++        Iterator<String> nextWakeLock = mSeenWakeLocks.iterator();
++        while (nextWakeLock.hasNext()) {
++            String wakeLockTag = nextWakeLock.next();
++            buffer.append(wakeLockTag + "|");
++        }
++        if (buffer.length() > 0) {
++            buffer.deleteCharAt(buffer.length() - 1);
++        }
++        return buffer.toString();
++    }
++
++    private void setBlockedWakeLocks(String wakeLockTagsString) {
++        mBlockedWakeLocks = new HashSet<String>();
++
++        if (wakeLockTagsString != null && wakeLockTagsString.length() != 0) {
++            String[] parts = wakeLockTagsString.split("\\|");
++            for (int i = 0; i < parts.length; i++) {
++                mBlockedWakeLocks.add(parts[i]);
++            }
++        }
++    }
++
+ }
+-- 
+1.9.5.msysgit.0
+
