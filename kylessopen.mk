@@ -105,7 +105,7 @@ PRODUCT_PACKAGES += \
     
 #Optimization for low-memory devices
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.config.low_ram=true
+    ro.config.low_ram=false
 
 PRODUCT_PROPERTY_OVERRIDES += \
    media.stagefright.enable-player=true \

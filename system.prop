@@ -25,7 +25,6 @@ ro.bq.gpu_to_cpu_unsupported=1
 ro.zram.default=1
 persist.sys.purgeable_assets=1
 sys.mem.max_hidden_apps=10
-ro.ksm.default=1
 
 # Qualcomm
 com.qc.hardware=true
