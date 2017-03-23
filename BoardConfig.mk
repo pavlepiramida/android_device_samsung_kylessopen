@@ -55,6 +55,8 @@ BOARD_VOLD_MAX_PARTITIONS := 24
 BOARD_USES_QCOM_HARDWARE := true
 COMMON_GLOBAL_CFLAGS += -DQCOM_HARDWARE
 
+# External apps on SD
+TARGET_EXTERNAL_APPS = sdcard0
 
 # Graphics
 BOARD_EGL_CFG := device/samsung/kylessopen/prebuilt/system/lib/egl/egl.cfg
