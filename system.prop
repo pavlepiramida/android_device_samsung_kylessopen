@@ -38,14 +38,14 @@ rild.libargs=-d /dev/smd0
 ril.subscription.types=NV,RUIM
 ro.telephony.call_ring.multiple=false 
 ro.telephony.call_ring.delay=1000  
-ro.ril.gprsclass=10
-ro.ril.hsxpa=1
+# ro.ril.gprsclass=10
+# ro.ril.hsxpa=1
 telephony.lteOnGsmDevice=false
 telephony.lteOnCdmaDevice=false
 
 
 # USB
-persist.sys.usb.config=mass_storage,adb
+persist.sys.usb.config=mtp,adb
 
 # Wifi
 wifi.interface=wlan0
