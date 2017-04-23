@@ -1,16 +1,44 @@
 CyanogenMod 11 device tree for the Samsung GT-S7560/M
 
-How to compile (On Ubuntu 14.XX):
+How to compile (On Ubuntu 14.XX/16.xx/17.xx , Arch Linux):
 
 1. Open terminal, create a new folder and "cd" into it.
 2. Type "repo init -u git://github.com/CyanogenMod/android.git -b cm-11.0" to initialize the repo.
 3. Copy the files from my "android_local_manifest" repo into "(CM directory)/.repo/local_manifests"
-4. Type "repo sync" and let the ~16GB code download (Find something to do, it will be a while)
+4. Type "repo sync" and let the ~26GB code download (Find something to do, it will be a while)
 5. Check to make sure you followed the steps correctly. Go to "(CM directory)/device/samsung/kylessopen" and if this build tree is in there, you are ready to compile!
-6. Navigate to the main CM directory from within terminal and type "cd device/samsung/kylessopen && ./setup-makefiles.sh && cd ../../.. && cd vendor/cm &&  ./get-prebuilts && cd ../.. && . build/envsetup.sh && brunch kylessopen"
-7. Let it compile (Again, it will take a while)
+6*.Navigate to device/samsung/kylessopen/patches and run ./apply.sh from terminal
+7. Navigate to the main CM directory from within terminal and type "cd device/samsung/kylessopen && ./setup-makefiles.sh && cd ../../.. && cd vendor/cm &&  ./get-prebuilts && cd ../.. && . build/envsetup.sh && brunch kylessopen"
+8. Let it compile (Again, it will take a while)
+
+*Only if you want to build with ArchiDroid optimizationV3 for Cyanogenmod,if not,skip this step and proceed to step 7.
+
 
 How to rebuild after modifying device tree:
 
 1. Naviage to the main CM directory from within terminal and type "repo sync && make clobber && cd device/samsung/kylessopen && ./setup-makefiles.sh && cd ../../.. && cd vendor/cm &&  ./get-prebuilts && cd ../.. && . build/envsetup.sh && brunch kylessopen"
+
 NOTE: "repo sync" updates the CM code to the latest; "make clobber" clears the build directory which is not necessary, but I reccomend it because sometimes make misses some changes, especially when modifying the device tree.
+
+
+
+
+
+
+Little more help for new devs and people who want to compile this rom on their own without prior exp:
+
+FOR UBUNTU/MINT/DEBIAN USERS:
+
+*Setting up for build
+
+https://source.android.com/source/initializing 
+Install all recommended packages,you can use openjdk-7,openjdk-6,sunjdk-6,sunjdk-7
+I recommend you to use make-3.82 (download it from here https://ftp.gnu.org/gnu/make/ and compile it)
+Dont forget to do sudo apt install lzop schedtool pngcrush bc
+
+FOR ARCH USERS:
+
+sudo pacman -S git gnupg flex bison gperf sdl wxgtk squashfs-tools curl ncurses zlib schedtool perl-switch zip unzip lib32-zlib lib32-ncurses lib32-readline gcc-libs-multilib gcc-multilib lib32-gcc-libs lzop schedtool bc 
+
+compile make-3.82 and choose what jdk you want (open or sun,both 6 or 7)
+
